@@ -322,7 +322,10 @@ def embed_airr(
     # Check if requested chains are available in the data based on locus information
     data_copy = airr.copy()
     if "locus" not in data_copy.columns:
-        data_copy.loc[:, "locus"] = data_copy.loc[:, "v_call"].apply(lambda x: x[:3])
+        data_copy.loc[:, "locus"] = data_copy.loc[:, "v_call"].apply(lambda x: x[:3]).str.upper()
+    else:
+        # Convert locus to uppercase to avoid case sensitivity issues
+        data_copy.loc[:, "locus"] = data_copy["locus"].str.upper()
 
     present_loci = set(data_copy["locus"].unique())
 
