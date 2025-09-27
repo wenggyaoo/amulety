@@ -119,15 +119,44 @@ def process_airr(
     if mode not in allowed_modes:
         raise ValueError(f"Mode must be one of {allowed_modes}.")
 
-    # Check that required columns exist
-    required_cols = [sequence_col, "v_call"]
-    missing_cols = [col for col in required_cols if col not in airr_df.columns]
-    if missing_cols:
-        raise ValueError(f"Column(s) {missing_cols} are not present in the input data and are needed for processing.")
-
+    # Create locus column if not present
     data = airr_df.copy()
-    if "locus" not in data.columns:
-        data.loc[:, "locus"] = data.loc[:, "v_call"].apply(lambda x: x[:3])
+
+    present_loci = set(data["locus"].unique())
+
+    # Determine available chains based on locus
+    available_chains = set()
+    heavy_loci = {"IGH", "TRB", "TRD"}  # Heavy chains: IGH for BCR, TRB/TRD for TCR
+    light_loci = {"IGL", "IGK", "TRA", "TRG"}  # Light chains: IGL/IGK for BCR, TRA/TRG for TCR
+
+    if present_loci & heavy_loci:
+        available_chains.add("H")
+    if present_loci & light_loci:
+        available_chains.add("L")
+
+    # Validate chain availability
+    if chain_mode == "H" and "H" not in available_chains:
+        raise ValueError(
+            f"Chain parameter 'H' requires heavy chain data, but no heavy chain loci found. "
+            f"Available loci: {', '.join(sorted(present_loci))}. Use --chain L for light chain analysis."
+        )
+    elif chain_mode == "L" and "L" not in available_chains:
+        raise ValueError(
+            f"Chain parameter 'L' requires light chain data, but no light chain loci found. "
+            f"Available loci: {', '.join(sorted(present_loci))}. Use --chain H for heavy chain analysis."
+        )
+    elif chain_mode in ["HL", "LH", "H+L"] and not available_chains.issuperset({"H", "L"}):
+        missing = {"H", "L"} - available_chains
+        if "H" in missing:
+            raise ValueError(
+                f"Chain parameter '{chain_mode}' requires heavy chain data, but no heavy chain loci found. "
+                f"Available loci: {', '.join(sorted(present_loci))}. Use --chain L for light chain analysis."
+            )
+        elif "L" in missing:
+            raise ValueError(
+                f"Chain parameter '{chain_mode}' requires light chain data, but no light chain loci found. "
+                f"Available loci: {', '.join(sorted(present_loci))}. Use --chain H for heavy chain analysis."
+            )
 
     # ===== RECEPTOR TYPE VALIDATION =====
     bcr_loci = {"IGH", "IGL", "IGK"}
@@ -146,9 +175,7 @@ def process_airr(
             )
             data = data[data["locus"].isin(bcr_loci)]
         elif tcr_present and not bcr_present:
-            raise ValueError(
-                "No BCR chains (IGH, IGL, IGK) found in data. This embedding model is trained for BCR data and should not be used for TCR-only data."
-            )
+            raise ValueError("No BCR chains (IGH, IGL, IGK) found in data")
     elif receptor_type.upper() == "TCR":
         if bcr_present and tcr_present:
             bcr_chains = present_loci & bcr_loci
@@ -158,9 +185,7 @@ def process_airr(
             )
             data = data[data["locus"].isin(tcr_loci)]
         elif bcr_present and not tcr_present:
-            raise ValueError(
-                "No TCR chains (TRA, TRB, TRG, TRD) found in data. This embedding model is trained for TCR data and should not be used for BCR-only data."
-            )
+            raise ValueError("No TCR chains (TRA, TRB, TRG, TRD) found in data.")
     elif receptor_type.upper() == "ALL":
         logger.info("Processing both BCR and TCR sequences from the file.")
     else:
@@ -225,7 +250,7 @@ def process_airr(
         if is_bulk:
             data[cell_id_col] = pd.NA
 
-        # For models like TCREMP that need H+L in tab_locus_gene format
+        # For models that need H+L in tab_locus_gene format
         if mode == "tab_locus_gene":
             data = process_h_plus_l(data, sequence_col, cell_id_col, duplicate_col, mode=mode)
         else:
