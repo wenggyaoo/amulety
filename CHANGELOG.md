@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1dev
+
+### Added
+
+### Fixed
+
+- Make locus uppercase to avoid missmatches.
+- Fixed bug on translation when `sequence_vdj` column was empty.
+
 ## 2.0 - Brown Kiwi
 
 ### Added
