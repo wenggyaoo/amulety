@@ -5,7 +5,7 @@
 You can install AMULETY using conda or pip. To install AMULETY using conda, run this command:
 
 ```console
-conda install -c bioconda amulety
+conda install -c conda-forge -c bioconda amulety --strict-channel-priority
 ```
 
 This is the preferred method to install AMULETY, as it will install all the needed dependencies.

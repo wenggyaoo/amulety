@@ -121,10 +121,18 @@ def ablang(
         batch_size: int: Number of sequences to process in each batch.
         residue_level: bool: If True, returns residue-level embeddings.
     """
+    import sys
+
+    # Guard for Python version incompatibility (numba dependency unsupported on >=3.14)
+    if sys.version_info >= (3, 14):
+        raise ImportError(
+            "AbLang is unavailable on Python 3.14+ due to numba version constraints. "
+            "Please reinstall amulety under Python <3.14 to include the AbLang model."
+        )
     try:
-        import ablang
+        import ablang  # noqa: F401
     except ImportError as e:
-        raise ImportError("AbLang is not installed. Please install it using: pip install ablang") from e
+        raise ImportError("AbLang is not installed. Install with: pip install ablang (requires Python <3.14).") from e
 
     max_seq_length = 160
 

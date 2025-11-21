@@ -6,6 +6,7 @@ python -m unittest test_amulety.py
 """
 
 import os
+import sys
 import unittest
 
 import pandas as pd
@@ -44,6 +45,7 @@ class TestAmulety(unittest.TestCase):
         """Tear down test fixtures, if any."""
 
     # ablang tests
+    @unittest.skipIf(sys.version_info >= (3, 14), "AbLang unavailable on Python >=3.14 (numba constraint)")
     def test_ablang_mixed_HL_embedding(self):
         """Test AbLang (mixed bulk sc HL)."""
         with self.assertWarns(UserWarning) as cm:
@@ -56,6 +58,7 @@ class TestAmulety(unittest.TestCase):
         os.remove("HL_test.pt")
         os.remove("HL_test_metadata.tsv")
 
+    @unittest.skipIf(sys.version_info >= (3, 14), "AbLang unavailable on Python >=3.14 (numba constraint)")
     def test_ablang_mixed_H_plus_L_embedding_tsv(self):
         """Test AbLang (mixed bulk sc H+L)."""
         embed(self.test_airr_mixed_path, "H+L", "ablang", "H_plus_L_test.tsv")
@@ -66,6 +69,7 @@ class TestAmulety(unittest.TestCase):
         os.remove("H_plus_L_test.tsv")
         os.remove("H_plus_L_test_metadata.tsv")
 
+    @unittest.skipIf(sys.version_info >= (3, 14), "AbLang unavailable on Python >=3.14 (numba constraint)")
     def test_ablang_mixed_H_embedding_tsv(self):
         """Test AbLang H."""
         embed(self.test_airr_mixed_path, "H", "ablang", "H_test.tsv")
@@ -76,6 +80,7 @@ class TestAmulety(unittest.TestCase):
         os.remove("H_test.tsv")
         os.remove("H_test_metadata.tsv")
 
+    @unittest.skipIf(sys.version_info >= (3, 14), "AbLang unavailable on Python >=3.14 (numba constraint)")
     def test_ablang_residue_level(self):
         """Test AbLang residue-level embeddings."""
         embed(self.test_airr_mixed_path, "H", "ablang", "H_test_residue.pt", residue_level=True)
