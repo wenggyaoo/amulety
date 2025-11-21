@@ -21,7 +21,12 @@ You can install AMULETY using conda (it requires python 3.8 or higher):
 conda install -c conda-forge -c bioconda amulety --strict-channel-priority
 ```
 
-The conda installation will also install the necessary IgBlast dependency.
+The conda installation will also install the necessary IgBlast dependency. Installing `amulety` through conda should also install Python, however if the error `amulety: command not found` is encountered after this installation, please ensure that Python was correctly installed or add Python to the installation command:
+
+```bash
+conda install -c conda-forge -c bioconda python amulety --strict-channel-priority
+```
+
 You can also install AMULETY via pip, this will though require previously
 installing IgBlast if translations are desired.
 
