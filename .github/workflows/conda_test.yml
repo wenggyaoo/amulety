@@ -29,4 +29,4 @@ jobs:
           conda config --set always_yes yes --set changeps1 no
           conda install -c conda-forge mamba
           mamba install -c conda-forge -c bioconda amulety
-          amulety --version
+          amulety --help
