@@ -210,7 +210,11 @@ def translate_airr(
         ]
     igblast_transl = pd.read_csv(out_igblast, sep="\t", usecols=keep_cols)
 
-    sequence_vdj_aa = [sa.replace("-", "") for sa in igblast_transl["sequence_alignment_aa"]]
+    # Remove IMGT gaps, handling NaN values for sequences with translation issues
+    sequence_vdj_aa = [
+        sa.replace("-", "") if pd.notna(sa) and isinstance(sa, str) else ""
+        for sa in igblast_transl["sequence_alignment_aa"]
+    ]
     igblast_transl["sequence_vdj_aa"] = sequence_vdj_aa
 
     logger.info(
