@@ -8,6 +8,7 @@
 
 - Make locus uppercase to avoid missmatches.
 - Fixed bug on translation when `sequence_vdj` column was empty.
+- Fix compatibility for Python 3.14 (does not support AbLang).
 
 ## 2.0 - Brown Kiwi
 
