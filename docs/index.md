@@ -62,8 +62,6 @@ Release Notes <history>
 :maxdepth: 2
 :caption: USAGE DOCUMENTATION
 included_models
-tutorials/amulety_cli
-tutorials/ML_tutorial
 cli
 api
 ```
