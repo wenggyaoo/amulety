@@ -47,36 +47,31 @@ Immcantation Portal <https://immcantation.readthedocs.io>
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: About
+:caption: GETTING STARTED
 
-Introduction <self>
-installation
-included_models
-Release Notes <history>
+Overview <self>
+Installation
+
 contributing
+Release Notes <history>
+
 ```
 
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: Tutorials
-
+:caption: USAGE DOCUMENTATION
+included_models
 tutorials/amulety_cli
 tutorials/ML_tutorial
-```
-
-```{toctree}
-:hidden:
-:maxdepth: 2
-:caption: CLI reference
-
 cli
+api
 ```
 
 ```{toctree}
 :hidden:
 :maxdepth: 2
-:caption: API reference
-
-api
+:caption: TUTORIALS
+tutorials/amulety_cli
+tutorials/ML_tutorial
 ```
