@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added fine-tuning tutorials
+
 ### Fixed
 
 - Make locus uppercase to avoid missmatches.
