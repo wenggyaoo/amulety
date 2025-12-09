@@ -1,10 +1,10 @@
 # Changelog
 
-## 2.1dev
+## 2.1
 
 ### Added
 
-- Added fine-tuning tutorials
+- Added fine-tuning tutorial
 
 ### Fixed
 
