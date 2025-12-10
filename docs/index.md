@@ -72,4 +72,5 @@ api
 :caption: TUTORIALS
 tutorials/amulety_cli
 tutorials/ML_tutorial
+tutorials/fine_tuning_tutorial
 ```
