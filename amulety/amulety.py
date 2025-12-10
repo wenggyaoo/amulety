@@ -308,13 +308,8 @@ def embed_airr(
     if chain not in valid_chains:
         raise ValueError(f"Input chain must be one of {valid_chains}")
 
-    # Use the chain parameter directly - no mapping needed
     if output_type not in ["df", "pickle", "anndata"]:
         raise ValueError("Output type must be one of ['df', 'pickle', 'anndata']")
-    if sequence_col not in airr.columns:
-        raise ValueError(f"Column {sequence_col} not found in the input AIRR data.")
-    if "sequence_id" not in airr.columns:
-        raise ValueError("Column 'sequence_id' not found in the input AIRR data.")
 
     if residue_level and output_type not in ["pickle"]:
         warnings.warn(
@@ -322,47 +317,20 @@ def embed_airr(
         )
         output_type = "pickle"
 
-    # ===== BASIC CHAIN VALIDATION =====
-    # Check if requested chains are available in the data based on locus information
-    data_copy = airr.copy()
-    if "locus" not in data_copy.columns:
-        data_copy.loc[:, "locus"] = data_copy.loc[:, "v_call"].apply(lambda x: x[:3])
+    # Check that required columns exist
+    required_cols = [sequence_col, "v_call", "sequence_id"]
+    missing_cols = [col for col in required_cols if col not in airr.columns]
+    if missing_cols:
+        raise ValueError(f"Column(s) {missing_cols} are not present in the input data and are needed for processing.")
 
-    present_loci = set(data_copy["locus"].unique())
+    # Create locus column if not present
+    data = airr.copy()
+    if "locus" not in data.columns:
+        data.loc[:, "locus"] = data.loc[:, "v_call"].apply(lambda x: x[:3]).str.upper()
+    else:
+        # Convert locus to uppercase to avoid case sensitivity issues
+        data.loc[:, "locus"] = data["locus"].str.upper()
 
-    # Determine available chains based on locus
-    available_chains = set()
-    heavy_loci = {"IGH", "TRB", "TRD"}  # Heavy chains: IGH for BCR, TRB/TRD for TCR
-    light_loci = {"IGL", "IGK", "TRA", "TRG"}  # Light chains: IGL/IGK for BCR, TRA/TRG for TCR
-
-    if present_loci & heavy_loci:
-        available_chains.add("H")
-    if present_loci & light_loci:
-        available_chains.add("L")
-
-    # Validate chain availability
-    if chain == "H" and "H" not in available_chains:
-        raise ValueError(
-            f"Chain parameter 'H' requires heavy chain data, but no heavy chain loci found. "
-            f"Available loci: {', '.join(sorted(present_loci))}. Use --chain L for light chain analysis."
-        )
-    elif chain == "L" and "L" not in available_chains:
-        raise ValueError(
-            f"Chain parameter 'L' requires light chain data, but no light chain loci found. "
-            f"Available loci: {', '.join(sorted(present_loci))}. Use --chain H for heavy chain analysis."
-        )
-    elif chain in ["HL", "LH", "H+L"] and not available_chains.issuperset({"H", "L"}):
-        missing = {"H", "L"} - available_chains
-        if "H" in missing:
-            raise ValueError(
-                f"Chain parameter '{chain}' requires heavy chain data, but no heavy chain loci found. "
-                f"Available loci: {', '.join(sorted(present_loci))}. Use --chain L for light chain analysis."
-            )
-        elif "L" in missing:
-            raise ValueError(
-                f"Chain parameter '{chain}' requires light chain data, but no light chain loci found. "
-                f"Available loci: {', '.join(sorted(present_loci))}. Use --chain H for heavy chain analysis."
-            )
     # ===== DETERMINE RECEPTOR TYPE FOR VALIDATION =====
     # Automatically determine receptor type based on model
     bcr_models = {"ablang", "antiberty", "antiberta2", "balm-paired"}
@@ -383,13 +351,10 @@ def embed_airr(
     # ===== VALIDATE DATA TYPE MATCHES MODEL EXPECTATIONS =====
     # Check if the data type matches the model's expected receptor type
     # First, ensure we have locus information (same logic as later in the function)
-    data_copy_for_validation = airr.copy()
-    if "locus" not in data_copy_for_validation.columns:
-        data_copy_for_validation.loc[:, "locus"] = data_copy_for_validation.loc[:, "v_call"].apply(lambda x: x[:3])
+    present_loci = set(data["locus"].unique())
 
     bcr_loci = {"IGH", "IGK", "IGL"}
     tcr_loci = {"TRA", "TRB", "TRG", "TRD"}
-    present_loci = set(data_copy_for_validation["locus"].unique())
 
     has_bcr_data = bool(present_loci & bcr_loci)
     has_tcr_data = bool(present_loci & tcr_loci)
@@ -407,19 +372,6 @@ def embed_airr(
             f"Please use TCR data or choose a different model."
         )
     # For receptor_type == "all", both BCR and TCR data are acceptable
-
-    # ===== DETECT DATA TYPE AND VALIDATE CHAIN COMPATIBILITY =====
-    # Check if this is bulk data (no cell_id column) or single-cell data
-    is_bulk_data = cell_id_col not in airr.columns
-
-    if is_bulk_data:
-        # Bulk data validation: only individual chains (H, L, H+L) are supported
-        # Paired chains (HL, LH) require cell_id for pairing and are not supported
-        if chain in ["HL", "LH"]:
-            raise ValueError(f'chain = "{chain}" invalid for bulk mode')
-        logger.info("Detected bulk data format (no cell_id column)")
-    else:
-        logger.info("Detected single-cell data format")
 
     # ===== PROCESS DATA =====
     # Dropping rows were sequence column is NA

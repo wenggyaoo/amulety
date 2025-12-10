@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amulety"
-version = "2.0"
+version = "2.1"
 description = "Python package to create embeddings of BCR amino acid sequences."
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8, <4"
@@ -47,7 +47,9 @@ dependencies = [
     "transformers",
     "typer",
     "antiberty",
-    "ablang",
+    # ablang depends on numba which currently supports Python <3.14.
+    # Use an environment marker so installation on 3.14+ skips ablang instead of failing.
+    "ablang; python_version < '3.14'",
     "rjieba",
     "sentencepiece",
     "anndata"

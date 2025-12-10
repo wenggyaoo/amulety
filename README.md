@@ -18,10 +18,15 @@ The full AMULETY usage documentation can be found on the
 You can install AMULETY using conda (it requires python 3.8 or higher):
 
 ```bash
-conda install amulety
+conda install -c conda-forge -c bioconda amulety --strict-channel-priority
 ```
 
-The conda installation will also install the necessary IgBlast dependency.
+The conda installation will also install the necessary IgBlast dependency. Installing `amulety` through conda should also install Python, however if the error `amulety: command not found` is encountered after this installation, please ensure that Python was correctly installed or add Python to the installation command:
+
+```bash
+conda install -c conda-forge -c bioconda python amulety --strict-channel-priority
+```
+
 You can also install AMULETY via pip, this will though require previously
 installing IgBlast if translations are desired.
 
@@ -42,6 +47,20 @@ To print the usage help for the AMULETY package type:
 ```bash
 amulety --help
 ```
+
+### Python version compatibility and AbLang support
+
+AMULETY supports Python versions `>=3.8,<4`. However, the optional **AbLang** model (used for some antibody embeddings) depends on `numba`, which currently does **not** support Python 3.14 and above. Beginning with Python 3.14, AbLang is automatically excluded from installation and is unavailable at runtime.
+
+If you run AMULETY on Python 3.14+, attempting to use `--model ablang` (or programmatic use of the AbLang embedding function) will raise a clear `ImportError` explaining the limitation. To use AbLang, please install AMULETY under a Python version `<3.14`:
+
+```bash
+conda create -n amulety-ablang python=3.13
+conda activate amulety-ablang
+pip install amulety ablang
+```
+
+The build configuration uses an environment marker to skip installing AbLang on Python 3.14+ so normal installation and other models continue to work without failure.
 
 ## Using the docker container
 

@@ -10,4 +10,5 @@ sphinxcontrib-typer
 sphinx-click
 myst-parser
 nbsphinx
+crc32c
 -e .
