@@ -634,7 +634,7 @@ def translate_igblast(
 
     This function takes a AIRR file in TSV format containing nucleotide sequences
     and translates them into amino acid sequences using IgBlast, a tool for analyzing
-    immunoglobulin and T cell receptor sequences. It performs the following steps:\n
+    BCR and TCR sequences. It performs the following steps:\n
 
     1. Reads the input TSV file containing nucleotide sequences.\n
     2. Writes the nucleotide sequences into a FASTA file, required as input for IgBlast.\n
@@ -642,6 +642,9 @@ def translate_igblast(
     4. Reads the IgBlast output, which includes the translated amino acid sequences.\n
     5. Removes gaps introduced by IgBlast from the sequence alignment.\n
     6. Saves the translated data into a new TSV file in the specified output directory.\n\n
+
+    Example usage:\n
+        amulety translate-igblast --input-file input.tsv --output-dir ./output --reference-dir /path/to/igblast/references
     """
 
     # Setup logging configuration (this will override global settings if provided)
@@ -692,7 +695,7 @@ def embed(
         typer.Option(
             "--chain",
             "-c",
-            help="Input sequences. For BCR: H=Heavy, L=Light, HL=Heavy-Light pairs, LH=Light-Heavy pairs, H+L=Both chains separately. For TCR: H=Beta/Delta, L=Alpha/Gamma, HL=Beta-Alpha/Delta-Gamma pairs, LH=Alpha-Beta/Gamma-Delta pairs, H+L=Both chains separately.",
+            help="Input chain to embed. For BCR: H=Heavy, L=Light, HL=Heavy-Light pairs, LH=Light-Heavy pairs, H+L=Both chains separately. For TCR: H=Beta/Delta, L=Alpha/Gamma, HL=Beta-Alpha/Delta-Gamma pairs, LH=Alpha-Beta/Gamma-Delta pairs, H+L=Both chains separately.",
         ),
     ],
     model: Annotated[
@@ -791,7 +794,7 @@ def embed(
     embeddings in the specified output format along with the filtered input AIRR data.
 
     Example usage:\n
-        amulety embed --chain HL --model antiberta2 --output-file-path out.pt airr_rearrangement.tsv
+        amulety embed --input-airr airr_rearrangement.tsv --chain HL --model antiberta2 --output-file-path out.tsv
     """
     import torch
 
