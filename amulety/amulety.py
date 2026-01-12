@@ -375,10 +375,10 @@ def embed_airr(
 
     # ===== PROCESS DATA =====
     # Dropping rows were sequence column is NA
-    n_dat = airr.shape[0]
+    n_dat = data.shape[0]
 
-    airr = airr.dropna(subset=[sequence_col])
-    n_dropped = n_dat - airr.shape[0]
+    data = data.dropna(subset=[sequence_col])
+    n_dropped = n_dat - data.shape[0]
     if n_dropped > 0:
         logger.info("Removed %s rows with missing values in %s", n_dropped, sequence_col)
 
@@ -396,7 +396,7 @@ def embed_airr(
             )
 
         # Process data with unified pattern
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = ablang(sequences=X, batch_size=batch_size, residue_level=residue_level)
 
@@ -409,7 +409,7 @@ def embed_airr(
             )
 
         # Process data with unified pattern
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = antiberta2(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -422,7 +422,7 @@ def embed_airr(
             )
 
         # Process data for antiberty
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = antiberty(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -442,7 +442,7 @@ def embed_airr(
 
         # Process data for BALM-paired - use standard mode for paired chains
         X, dat = process_airr(
-            airr,
+            data,
             chain,
             sequence_col,
             cell_id_col,
@@ -458,7 +458,7 @@ def embed_airr(
         # TCR-BERT supports all chain types
 
         # TCR-BERT: Only CDR3, supports H+L, H, L, HL/LH
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = tcr_bert(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -472,7 +472,7 @@ def embed_airr(
             )
 
         # TCRT5: Only CDR3, only supports H (beta) chains
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = tcrt5(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -490,7 +490,7 @@ def embed_airr(
             )
 
         # Process data for immune2vec
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = immune2vec(
             sequences=X, cache_dir=cache_dir, batch_size=batch_size, installation_path=installation_path
@@ -507,7 +507,7 @@ def embed_airr(
             )
 
         # Process data for esm2
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = esm2(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -521,7 +521,7 @@ def embed_airr(
             )
 
         # Process data for prott5
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = prott5(sequences=X, cache_dir=cache_dir, batch_size=batch_size, residue_level=residue_level)
 
@@ -537,7 +537,7 @@ def embed_airr(
             raise ValueError("For custom model, modelpath, embedding_dimension, and max_length must be provided.")
 
         # Process data for custom model
-        X, dat = process_airr(airr, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
+        X, dat = process_airr(data, chain, sequence_col, cell_id_col, duplicate_col, receptor_type, mode="concat")
 
         embedding = custommodel(
             sequences=X,
