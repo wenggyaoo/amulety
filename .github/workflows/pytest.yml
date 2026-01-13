@@ -43,6 +43,7 @@ jobs:
           sudo -n apt-get clean || true
           python -m pip install --upgrade pip
           python -m pip install --upgrade setuptools wheel
+          python -m pip install pytest
 
           # Install Immune2Vec dependencies only for Python 3.8
           if [[ "${{ matrix.python-version }}" == "3.8" ]]; then
