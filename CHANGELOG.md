@@ -1,6 +1,13 @@
 # Changelog
 
-## 2.1
+## 2.1.1 - Green Weka hotfix
+
+### Fixed
+
+- Fixed automatic locus determination.
+- Fixed example command in documentation.
+
+## 2.1 - Green Weka
 
 ### Added
 
