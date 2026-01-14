@@ -11,6 +11,7 @@ from typing import Optional
 
 import pandas as pd
 import torch
+from torch.nn.functional import pad
 
 from amulety.utils import batch_loader
 
@@ -278,27 +279,29 @@ def tcrt5(
     for start, end, batch in batch_loader(sequences, batch_size):
         logger.info("TCRT5 Batch %s/%s.", i, n_batches)
 
-        # Process each sequence in the batch
-        batch_embeddings = []
-        for seq in batch:
-            # Format sequence for TCRT5 (just the sequence without PMHC format for CDR3 embedding)
-            encoded_seq = tokenizer(seq, return_tensors="pt", truncation=True, max_length=max_seq_length).to(device)
+        # Format sequences for TCRT5 (just the sequence without PMHC format for CDR3 embedding)
+        encoded_batch = tokenizer(batch.tolist(), return_tensors="pt", padding=True, truncation=True, max_length=max_seq_length).to(device)
 
-            with torch.no_grad():
-                # Use encoder outputs for embedding representation
-                enc_outputs = model.encoder(**encoded_seq)
-                if not residue_level:
-                    # Use mean pooling over sequence length to get fixed-size embedding
-                    sequence_embedding = enc_outputs.last_hidden_state.mean(dim=1).squeeze()
-                else:
-                    sequence_embedding = enc_outputs.last_hidden_state.squeeze()
-                    if sequence_embedding.shape[0] < max_seq_length:
-                        # Pad with zeros if needed
-                        padding = torch.zeros((max_seq_length - sequence_embedding.shape[0], dim))
-                        sequence_embedding = torch.cat((sequence_embedding, padding), dim=0)
-                batch_embeddings.append(sequence_embedding.cpu())
+        with torch.no_grad():
+            # Use encoder outputs for embedding representation
+            enc_outputs = model.encoder(**encoded_batch)
+            padded_embeddings = enc_outputs.last_hidden_state  # [batch_size, max_seq_len_in_batch, dim]
+            # Ensure that padding tokens are represented with zeros
+            padding_mask = encoded_batch["attention_mask"].unsqueeze(-1).float()  # [batch_size, max_seq_len_in_batch, 1]
+            masked_embedding = padded_embeddings * padding_mask  # [batch_size, max_seq_len_in_batch, dim]
 
-        embeddings[start:end] = torch.stack(batch_embeddings)
+            if not residue_level:
+                # Use mean pooling over sequence length to get fixed-size embedding
+                # Ignore padding tokens while taking the mean
+                seq_lengths = padding_mask.sum(dim=1)  # [batch_size, 1]
+                sequence_embedding = masked_embedding.sum(dim=1) / seq_lengths  # [batch_size, dim]
+            else:
+                # Additional padding to match max_seq_length even if all sequences are shorter
+                padding_length = max_seq_length - masked_embedding.size(1)
+                # pad specifies where padding is added: (embedding_dim_left, embedding_dim_right, seq_dim_left, seq_dim_right)
+                sequence_embedding = pad(masked_embedding, pad=(0, 0, 0, padding_length), mode="constant", value=0)  # [batch_size, max_seq_length, dim]
+
+        embeddings[start:end] = sequence_embedding.cpu()
         i += 1
 
     end_time = time.time()
