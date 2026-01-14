@@ -280,14 +280,18 @@ def tcrt5(
         logger.info("TCRT5 Batch %s/%s.", i, n_batches)
 
         # Format sequences for TCRT5 (just the sequence without PMHC format for CDR3 embedding)
-        encoded_batch = tokenizer(batch.tolist(), return_tensors="pt", padding=True, truncation=True, max_length=max_seq_length).to(device)
+        encoded_batch = tokenizer(
+            batch.tolist(), return_tensors="pt", padding=True, truncation=True, max_length=max_seq_length
+        ).to(device)
 
         with torch.no_grad():
             # Use encoder outputs for embedding representation
             enc_outputs = model.encoder(**encoded_batch)
             padded_embeddings = enc_outputs.last_hidden_state  # [batch_size, max_seq_len_in_batch, dim]
             # Ensure that padding tokens are represented with zeros
-            padding_mask = encoded_batch["attention_mask"].unsqueeze(-1).float()  # [batch_size, max_seq_len_in_batch, 1]
+            padding_mask = (
+                encoded_batch["attention_mask"].unsqueeze(-1).float()
+            )  # [batch_size, max_seq_len_in_batch, 1]
             masked_embedding = padded_embeddings * padding_mask  # [batch_size, max_seq_len_in_batch, dim]
 
             if not residue_level:
@@ -299,7 +303,9 @@ def tcrt5(
                 # Additional padding to match max_seq_length even if all sequences are shorter
                 padding_length = max_seq_length - masked_embedding.size(1)
                 # pad specifies where padding is added: (embedding_dim_left, embedding_dim_right, seq_dim_left, seq_dim_right)
-                sequence_embedding = pad(masked_embedding, pad=(0, 0, 0, padding_length), mode="constant", value=0)  # [batch_size, max_seq_length, dim]
+                sequence_embedding = pad(
+                    masked_embedding, pad=(0, 0, 0, padding_length), mode="constant", value=0
+                )  # [batch_size, max_seq_length, dim]
 
         embeddings[start:end] = sequence_embedding.cpu()
         i += 1
