@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2 - dev
+
+### Fixed
+
+### Added
+
+- Allowed IgBlast multiprocessing.
+
 ## 2.1.1 - Green Weka hotfix
 
 ### Fixed
