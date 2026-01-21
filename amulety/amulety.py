@@ -125,6 +125,10 @@ def translate_airr(
             The name of the column containing the nucleotide sequences to translate.
         nproc (int):
             Number of processors to use for IgBlast.
+
+    returns:
+        airr (pd.DataFrame):
+            AIRR DataFrame with added amino acid translation columns.
     """
     data = airr.copy()
 
@@ -299,10 +303,10 @@ def embed_airr(
             If True, returns residue-level embeddings of dimension sequence length x embedding dimension (L x D)
             instead of sequence-level (1 x D).
     returns:
-        A tuple with:
-            The embeddings as a pandas DataFrame (if output_type="df"), a serialized torch object (if output_type="pickle")
+        Tuple (tuple):
+            embeddings (df/pickle/anndata): The embeddings as a pandas DataFrame (if output_type="df"), a serialized torch object (if output_type="pickle")
             or an anndata object (if output_type="anndata").
-            The filtered input AIRR DataFrame with the metadata.
+            metadata (pd.DataFrame): The filtered input AIRR DataFrame with the metadata.
 
 
     """
