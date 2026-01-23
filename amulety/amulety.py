@@ -99,7 +99,12 @@ def check_igblast_available():
 
 
 def translate_airr(
-    airr: pd.DataFrame, tmpdir: str, reference_dir: str, keep_regions: bool = False, sequence_col: str = "sequence"
+    airr: pd.DataFrame,
+    tmpdir: str,
+    reference_dir: str,
+    keep_regions: bool = False,
+    sequence_col: str = "sequence",
+    nproc: int = 1,
 ):
     """
     Translates nucleotide sequences to amino acid sequences using IgBlast.
@@ -118,6 +123,12 @@ def translate_airr(
             If True, keeps the region translations in the output airr file. If False, it removes them.
         sequence_col (str):
             The name of the column containing the nucleotide sequences to translate.
+        nproc (int):
+            Number of processors to use for IgBlast.
+
+    returns:
+        airr (pd.DataFrame):
+            AIRR DataFrame with added amino acid translation columns.
     """
     data = airr.copy()
 
@@ -163,6 +174,8 @@ def translate_airr(
         f"{reference_dir}/database/imgt_human_ig_j",
         "-query",
         out_fasta,
+        "-num_threads",
+        str(nproc),
         "-organism",
         "human",
         "-auxiliary_data",
@@ -290,10 +303,10 @@ def embed_airr(
             If True, returns residue-level embeddings of dimension sequence length x embedding dimension (L x D)
             instead of sequence-level (1 x D).
     returns:
-        A tuple with:
-            The embeddings as a pandas DataFrame (if output_type="df"), a serialized torch object (if output_type="pickle")
+        Tuple (tuple):
+            embeddings (df/pickle/anndata): The embeddings as a pandas DataFrame (if output_type="df"), a serialized torch object (if output_type="pickle")
             or an anndata object (if output_type="anndata").
-            The filtered input AIRR DataFrame with the metadata.
+            metadata (pd.DataFrame): The filtered input AIRR DataFrame with the metadata.
 
 
     """
@@ -612,6 +625,14 @@ def translate_igblast(
             help="The name of the column containing the nucleotide sequences to translate.",
         ),
     ] = "sequence",
+    nproc: Annotated[
+        int,
+        typer.Option(
+            "--nproc",
+            "-n",
+            help="Number of processors to use for IgBlast.",
+        ),
+    ] = 1,
     log_file: Annotated[
         str,
         typer.Option(
