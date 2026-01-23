@@ -199,32 +199,50 @@ def ablang(
 
         logger.info("Batch %s/%s", i, n_batches)
 
-        for seq, chain_type in batch_data:
-            # Select appropriate model based on chain type
-            if chain_type == "H" and heavy_ablang is not None:
-                model = heavy_ablang
-            elif chain_type == "L" and light_ablang is not None:
-                model = light_ablang
-            else:
-                # Fallback to heavy model if light model not loaded or unknown chain type
-                if heavy_ablang is not None:
-                    model = heavy_ablang
-                else:
-                    model = light_ablang
+        # Group sequences by chain type for batch processing
+        heavy_seqs = []
+        light_seqs = []
+        heavy_indices = []
+        light_indices = []
 
-            if residue_level:
-                # Generate embedding for residue-level sequences
-                seq_embedding = model([seq], mode="rescoding")
-                if seq_embedding[0].shape[0] < max_seq_length + 2:
-                    # Pad to ensure consistent length
-                    pad_length = max_seq_length + 2 - seq_embedding[0].shape[0]
-                    embed_out = pad(torch.tensor(seq_embedding[0]), (0, 0, 0, pad_length))
-            else:
-                # Generate embedding for single sequence
-                seq_embedding = model([seq], mode="seqcoding")
-                embed_out = torch.tensor(seq_embedding[0])
-            embeddings_list.append(embed_out)
+        for idx, (seq, chain_type) in enumerate(batch_data):
+            if chain_type == "H":
+                heavy_seqs.append(seq)
+                heavy_indices.append(idx)
+            else:  # "L" or other chain types
+                light_seqs.append(seq)
+                light_indices.append(idx)
 
+        # Initialize batch embeddings list with None placeholders
+        batch_embeddings = [None] * len(batch_data)
+
+        # Helper function to process embeddings with padding
+        def process_embeddings(embeddings, indices, apply_padding):
+            for idx, seq_embedding in zip(indices, embeddings):
+                seq_tensor = torch.tensor(seq_embedding)
+                if apply_padding and seq_tensor.shape[0] < max_seq_length + 2:
+                    pad_length = max_seq_length + 2 - seq_tensor.shape[0]
+                    seq_tensor = pad(seq_tensor, (0, 0, 0, pad_length))
+                batch_embeddings[idx] = seq_tensor
+
+        # Process heavy chain sequences in batch
+        if heavy_seqs and heavy_ablang is not None:
+            mode = "rescoding" if residue_level else "seqcoding"
+            heavy_embeddings = heavy_ablang(heavy_seqs, mode=mode)
+            process_embeddings(heavy_embeddings, heavy_indices, residue_level)
+
+        # Process light chain sequences in batch
+        if light_seqs and light_ablang is not None:
+            mode = "rescoding" if residue_level else "seqcoding"
+            light_embeddings = light_ablang(light_seqs, mode=mode)
+            process_embeddings(light_embeddings, light_indices, residue_level)
+        # Handle fallback case: if light sequences exist but no light model, use heavy model
+        elif light_seqs and heavy_ablang is not None:
+            mode = "rescoding" if residue_level else "seqcoding"
+            fallback_embeddings = heavy_ablang(light_seqs, mode=mode)
+            process_embeddings(fallback_embeddings, light_indices, residue_level)
+
+        embeddings_list.extend(batch_embeddings)
         i += 1
 
     embeddings = torch.stack(embeddings_list)
