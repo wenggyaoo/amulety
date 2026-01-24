@@ -1,14 +1,11 @@
 # Changelog
 
-## 2.2 - Golden hihi
+## 2.1.2 - Green Weka hotfix II
 
 ### Fixed
 
 - Improved TCRT5 and AbLang parallelization.
 - Minor doc fixes.
-
-### Added
-
 - Added multithread processing for translate-igblast.
 
 ## 2.1.1 - Green Weka hotfix
